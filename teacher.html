@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>فصل الخادم</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase App (core) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXQ9wayuB_vHtCplBY4-nNH3W_QNJewso",
+      authDomain: "efteqadapp.firebaseapp.com",
+      projectId: "efteqadapp",
+      storageBucket: "efteqadapp.appspot.com",
+      messagingSenderId: "810482383329",
+      appId: "1:810482383329:web:8de0fc96be0e808b25baa0",
+      measurementId: "G-F32L1YEXJ8"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h2>مرحبا بك، <span id="classTitle">فصلك</span></h2>
+
+    <button onclick="logout()">تسجيل الخروج</button>
+
+    <h3>إضافة مخدوم جديد</h3>
+    <input type="text" id="studentName" placeholder="اسم المخدوم">
+    <input type="date" id="studentBirthday" placeholder="تاريخ الميلاد">
+    <textarea id="visitNote" placeholder="ملاحظات الافتقاد"></textarea>
+    <button onclick="addStudent()">إضافة</button>
+
+    <br><br>
+    <button onclick="goToList()">📋 قائمة المخدومين</button>
+  </div>
+
+  <script>
+    function addStudent() {
+      const name = document.getElementById("studentName").value.trim();
+      const birthday = document.getElementById("studentBirthday").value;
+      const note = document.getElementById("visitNote").value.trim();
+
+      if (!name || !birthday) {
+        alert("يرجى ملء الاسم وتاريخ الميلاد");
+        return;
+      }
+
+      db.collection("students").add({
+        name: name,
+        birthday: birthday,
+        note: note,
+        attendance: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        alert("تمت إضافة المخدوم بنجاح");
+        document.getElementById("studentName").value = "";
+        document.getElementById("studentBirthday").value = "";
+        document.getElementById("visitNote").value = "";
+      }).catch(error => {
+        console.error("خطأ في الإضافة:", error);
+      });
+    }
+
+    function goToList() {
+      window.location.href = "studentsList.html";
+    }
+
+    function logout() {
+      // هنا يمكن تحط كود تسجيل الخروج أو تعود للصفحة الرئيسية
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

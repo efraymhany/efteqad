@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>قائمة المخدومين</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXQ9wayuB_vHtCplBY4-nNH3W_QNJewso",
+      authDomain: "efteqadapp.firebaseapp.com",
+      projectId: "efteqadapp",
+      storageBucket: "efteqadapp.appspot.com",
+      messagingSenderId: "810482383329",
+      appId: "1:810482383329:web:8de0fc96be0e808b25baa0",
+      measurementId: "G-F32L1YEXJ8"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .present-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .absent-btn {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    textarea {
+      width: 90%;
+    }
+
+    .birthday-icon {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .green {
+      color: green;
+    }
+
+    .red {
+      color: red;
+    }
+
+    .today-info {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>قائمة المخدومين</h2>
+
+    <div class="today-info" id="todayInfo"></div>
+
+    <label for="monthSelector">اختر الشهر:</label>
+    <select id="monthSelector" onchange="loadStudents()"></select>
+
+    <table id="studentsTable">
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>الحضور</th>
+          <th>عدد الحضور في الشهر</th>
+          <th>عدد الحضور في السنة</th>
+          <th>عيد الميلاد</th>
+          <th>ملاحظات الافتقاد</th>
+          <th>متابعة</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const monthNames = ["يناير", "فبراير", "مارس", "إبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonthIndex = currentDate.getMonth();
+    const currentMonthName = monthNames[currentMonthIndex] + ' ' + currentYear;
+
+    const dayName = currentDate.toLocaleDateString('ar-EG', { weekday: 'long' });
+    const fullDate = currentDate.toLocaleDateString('ar-EG', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    document.getElementById("todayInfo").textContent = `اليوم: ${dayName} - التاريخ: ${fullDate}`;
+
+    function populateMonthDropdown() {
+      const selector = document.getElementById("monthSelector");
+      for (let i = 0; i < monthNames.length; i++) {
+        const option = document.createElement("option");
+        option.value = monthNames[i] + ' ' + currentYear;
+        option.text = monthNames[i] + ' ' + currentYear;
+        if (option.value === currentMonthName) option.selected = true;
+        selector.appendChild(option);
+      }
+    }
+
+    function loadStudents() {
+      const selectedMonth = document.getElementById("monthSelector").value;
+      db.collection("students").get().then(snapshot => {
+        const table = document.getElementById("tableBody");
+        table.innerHTML = "";
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const row = document.createElement("tr");
+
+          const nameCell = document.createElement("td");
+          nameCell.textContent = data.name;
+
+          const attendanceCell = document.createElement("td");
+          const presentBtn = document.createElement("button");
+          presentBtn.className = "present-btn";
+          presentBtn.textContent = "✔️";
+          presentBtn.onclick = () => markAttendance(doc.id, true, selectedMonth);
+
+          const absentBtn = document.createElement("button");
+          absentBtn.className = "absent-btn";
+          absentBtn.textContent = "❌";
+          absentBtn.onclick = () => markAttendance(doc.id, false, selectedMonth);
+
+          attendanceCell.appendChild(presentBtn);
+          attendanceCell.appendChild(absentBtn);
+
+          const monthCountCell = document.createElement("td");
+          const history = data.attendanceHistory || {};
+          monthCountCell.textContent = history[selectedMonth] || 0;
+
+          const yearCountCell = document.createElement("td");
+          let yearTotal = 0;
+          for (const key in history) {
+            if (key.includes(currentYear)) yearTotal += history[key];
+          }
+          yearCountCell.textContent = yearTotal;
+
+          const birthdayCell = document.createElement("td");
+          const birthdayText = data.birthday || "غير محدد";
+          const birthdaySpan = document.createElement("span");
+          birthdaySpan.textContent = birthdayText + " ";
+
+          const birthdayMonth = birthdayText.split("-")[1];
+          const birthdayIcon = document.createElement("span");
+          birthdayIcon.classList.add("birthday-icon");
+
+          if (parseInt(birthdayMonth) === currentMonthIndex + 1) {
+            birthdayIcon.textContent = "✅";
+            birthdayIcon.classList.add("green");
+          } else {
+            birthdayIcon.textContent = "❌";
+            birthdayIcon.classList.add("red");
+          }
+
+          birthdayCell.appendChild(birthdaySpan);
+          birthdayCell.appendChild(birthdayIcon);
+
+          const noteCell = document.createElement("td");
+          const noteArea = document.createElement("textarea");
+          noteArea.value = data.note || "";
+          noteArea.onchange = () => updateNote(doc.id, noteArea.value);
+          noteCell.appendChild(noteArea);
+
+          const trackBtn = document.createElement("td");
+          const followBtn = document.createElement("button");
+          followBtn.textContent = "متابعة";
+          followBtn.onclick = () => window.location.href = `student_detail.html?id=${doc.id}`;
+          trackBtn.appendChild(followBtn);
+
+          row.appendChild(nameCell);
+          row.appendChild(attendanceCell);
+          row.appendChild(monthCountCell);
+          row.appendChild(yearCountCell);
+          row.appendChild(birthdayCell);
+          row.appendChild(noteCell);
+          row.appendChild(trackBtn);
+
+          table.appendChild(row);
+        });
+      });
+    }
+
+    function markAttendance(id, isPresent, monthKey) {
+      const studentRef = db.collection("students").doc(id);
+      db.runTransaction(transaction => {
+        return transaction.get(studentRef).then(doc => {
+          if (!doc.exists) throw "البيانات غير موجودة";
+
+          const data = doc.data();
+          const history = data.attendanceHistory || {};
+          history[monthKey] = (history[monthKey] || 0) + (isPresent ? 1 : 0);
+
+          const log = data.attendanceLog || [];
+
+          const todayISO = new Date().toISOString().split("T")[0];
+
+          const logEntry = {
+            date: todayISO,
+            status: isPresent ? "present" : "absent"
+          };
+
+          const alreadyLogged = log.find(entry => entry.date === todayISO);
+          if (!alreadyLogged) log.push(logEntry);
+
+          transaction.update(studentRef, {
+            attendanceHistory: history,
+            attendanceLog: log
+          });
+        });
+      }).then(() => {
+        loadStudents();
+      });
+    }
+
+    function updateNote(id, note) {
+      db.collection("students").doc(id).update({ note });
+    }
+
+    window.onload = () => {
+      populateMonthDropdown();
+      loadStudents();
+    };
+  </script>
+</body>
+</html>

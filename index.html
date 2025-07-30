@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <title>تسجيل الدخول - نظام الخدمة</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Firebase App (core) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- firebaseConfig + init -->
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBXQ9wayuB_vHtCplBY4-nNH3W_QNJewso",
+        authDomain: "efteqadapp.firebaseapp.com",
+        projectId: "efteqadapp",
+        storageBucket: "efteqadapp.firebasestorage.app",
+        messagingSenderId: "810482383329",
+        appId: "1:810482383329:web:8de0fc96be0e808b25baa0",
+        measurementId: "G-F32L1YEXJ8",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h2>اختر المرحلة الدراسية</h2>
+
+      <select id="stage" onchange="updateGrades()">
+        <option value="">-- اختر المرحلة --</option>
+        <option value="ابتدائي">ابتدائي</option>
+        <option value="إعدادي">إعدادي</option>
+        <option value="ثانوي">ثانوي</option>
+      </select>
+
+      <h2>اختر السنة الدراسية</h2>
+      <select id="grade">
+        <option value="">-- اختر السنة --</option>
+      </select>
+
+      <input type="text" id="teacherName" placeholder="اسم الخادم" />
+      <input type="password" id="password" placeholder="كلمة السر" />
+
+      <button onclick="login()">دخول</button>
+    </div>
+    <script>
+      // إظهار وإخفاء النموذج
+      function toggleForm() {
+        const form = document.getElementById("add-form");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+      }
+
+      // حفظ البيانات في فايرستور
+      function addPatriarch() {
+        const name = document.getElementById("name").value;
+        const image = document.getElementById("image").value;
+        const heresies = document.getElementById("heresies").value;
+        const response = document.getElementById("response").value;
+
+        if (!name || !heresies || !response || !image) {
+          alert("يرجى ملء جميع الحقول");
+          return;
+        }
+
+        db.collection("patriarchs")
+          .add({
+            name,
+            image,
+            heresies,
+            response,
+          })
+          .then(() => {
+            alert("تمت الإضافة بنجاح");
+            location.reload();
+          })
+          .catch((err) => {
+            console.error("فشل الإضافة:", err);
+          });
+      }
+
+      // عرض البطاركة
+      document.addEventListener("DOMContentLoaded", async () => {
+        const list = document.getElementById("patriarchs-container");
+
+        try {
+          const snapshot = await db.collection("patriarchs").get();
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const li = document.createElement("li");
+            li.innerText = data.name;
+            li.onclick = () => {
+              localStorage.setItem("patriarchId", doc.id);
+              window.location.href = "patriarch.html";
+            };
+            list.appendChild(li);
+          });
+        } catch (err) {
+          console.error("فشل تحميل البيانات:", err);
+        }
+      });
+    </script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+
+    <script src="firebaseConfig.js"></script>
+    <script src="login.js"></script>
+  </body>
+</html>

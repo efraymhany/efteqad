@@ -1,0 +1,43 @@
+body {
+  direction: rtl;
+  font-family: 'Arial', sans-serif;
+  background: #f0f2f5; /* لون خلفية أفتح وأريح للعين */
+  padding: 30px;
+  text-align: center;
+}
+
+.container {
+  background: white;
+  max-width: 600px; /* تم تصحيح max-width إلى قيمة منطقية */
+  margin: auto;
+  padding: 30px 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* ظل أنعم وأحدث */
+}
+
+h1 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+input, select, button {
+  margin: 12px 0;
+  padding: 12px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تفاصيل المخدوم</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXQ9wayuB_vHtCplBY4-nNH3W_QNJewso",
+      authDomain: "efteqadapp.firebaseapp.com",
+      projectId: "efteqadapp",
+      storageBucket: "efteqadapp.firebaseapp.com",
+      messagingSenderId: "810482383329",
+      appId: "1:810482383329:web:8de0fc96be0e808b25baa0",
+      measurementId: "G-F32L1YEXJ8"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f3f7fb;
+      padding: 20px;
+      direction: rtl;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .back-btn {
+      display: block;
+      margin-top: 20px;
+      text-align: center;
+      text-decoration: none;
+      color: #007bff;
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    .present {
+      color: green;
+      font-weight: bold;
+    }
+    .absent {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>تفاصيل المخدوم</h2>
+
+    <h3>سجل الحضور والغياب:</h3>
+    <table id="attendanceTable">
+      <thead>
+        <tr>
+          <th>اليوم</th>
+          <th>التاريخ</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceBody"></tbody>
+    </table>
+
+    <a href="teacher.html" class="back-btn">🔙 العودة للفصل</a>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const studentId = urlParams.get("id");
+
+    function getArabicDayName(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("ar-EG", { weekday: 'long' });
+    }
+
+    function getFormattedDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("ar-EG", {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    }
+
+    if (!studentId) {
+      alert("الرابط غير صالح!");
+    } else {
+      const docRef = db.collection("students").doc(studentId);
+
+      docRef.get().then(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          const log = data.attendanceLog || [];
+          const tbody = document.getElementById("attendanceBody");
+          tbody.innerHTML = "";
+
+          log.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(entry => {
+            const tr = document.createElement("tr");
+
+            const dayTd = document.createElement("td");
+            dayTd.textContent = getArabicDayName(entry.date);
+
+            const dateTd = document.createElement("td");
+            dateTd.textContent = getFormattedDate(entry.date);
+
+            const statusTd = document.createElement("td");
+            statusTd.textContent = entry.status === "present" ? "✔️ حاضر" : "❌ غائب";
+            statusTd.className = entry.status === "present" ? "present" : "absent";
+
+            tr.appendChild(dayTd);
+            tr.appendChild(dateTd);
+            tr.appendChild(statusTd);
+
+            tbody.appendChild(tr);
+          });
+        } else {
+          alert("لا يوجد طالب بهذا المعرف.");
+        }
+      }).catch(error => {
+        console.error("خطأ في قراءة البيانات:", error);
+      });
+    }
+  </script>
+</body>
+</html>
